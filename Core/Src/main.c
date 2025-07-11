@@ -45,6 +45,8 @@
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
 
+TIM_HandleTypeDef htim2;
+
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
@@ -60,13 +62,31 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	
+  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3); // Visual cue that timer is functional
 
+  // Measurements and streaming
+  for (uint8_t i = 0; i < n_devices; i++) {
+    uint8_t addr = devices[i];
+    // Read data from sensor
+    HYT_RM_status = request_measurements(&hi2c1, addr, i2c_buff);
+    HAL_Delay(100);
+    HYT_Read_status = read_HYT271(&hi2c1, addr, i2c_buff);
+    convert_data(i2c_buff, data[i]);
+
+    if (stream) {
+      transmit_HYT(&huart2, data[i], tx_buff, addr); // This should have a more appropriate name
+    }
+  }
+}
 /* USER CODE END 0 */
 
 /**
@@ -80,15 +100,15 @@ int main(void)
 	//HYT271 variables
 	uint8_t i2c_buff[4]; //Storage for raw data
 
-	float data[4][2];	// Data for HYT271 sensor 1 {humidity, temperature}
-	uint32_t SHT45_SNs[2]; //Space for two serial numbers
-	// I2C Addresses
-	uint8_t ADDR_HYT_1 = 0x28;
-	uint8_t ADDR_HYT_2 = 0x71;
-
-	// I2C Address array
+	float data[4][2];	// Data array, four sensors, two kinds of data (RH, T) 
 	uint8_t devices[4];
 	uint8_t n_devices = 0;
+
+  uint32_t SHT45_SNs[2]; //Space for two serial numbers
+	
+  // I2C Addresses
+	uint8_t ADDR_HYT_1 = 0x28;
+	uint8_t ADDR_HYT_2 = 0x71;
 
 	// Status bits
 	uint8_t HYT_RM_status = 0;
@@ -97,7 +117,7 @@ int main(void)
 	// Serial TX buffer
 	uint8_t tx_buff[20];
 
-
+  sensor_power(1); // Power on sensori(s) 
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -120,8 +140,9 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_USART2_UART_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  HAL_UART_Receive_IT(&huart2, rx_buff, 4);
+  HAL_UART_Receive_IT(&huart2, rx_buff, 4); // enable UART interrupt
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -129,6 +150,7 @@ int main(void)
   while (1)
   {
 	  if (scan) {
+      // scan flag is set by incoming UART message
 		  n_devices = scan_i2c(&hi2c1, devices);
 		  broadcast_devices(&huart2, devices, n_devices);
 		  scan = 0;
@@ -143,13 +165,11 @@ int main(void)
 		  convert_data(i2c_buff, data[i]);
 
 		  if (stream) {
-			  transmit_HYT(&huart2, data[i], tx_buff, addr);
+			  transmit_HYT(&huart2, data[i], tx_buff, addr); // This should have a more appropriate name
 		  }
 	  }
 
-
-
-	  HAL_Delay(400);
+	  HAL_Delay(400); // set up timer instead of this janky delay
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -249,6 +269,51 @@ static void MX_I2C1_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 7;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 999999;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -290,6 +355,7 @@ static void MX_USART2_UART_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 /* USER CODE BEGIN MX_GPIO_Init_1 */
 /* USER CODE END MX_GPIO_Init_1 */
 
@@ -297,6 +363,26 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LS_ENABLE_GPIO_Port, LS_ENABLE_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : LS_ENABLE_Pin */
+  GPIO_InitStruct.Pin = LS_ENABLE_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LS_ENABLE_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : LED1_Pin */
+  GPIO_InitStruct.Pin = LED1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LED1_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
