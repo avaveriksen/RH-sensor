@@ -51,9 +51,15 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
+I2Cdriver i2c_bus;
+SHT45 sensors[4];	// Four Sensors, two for RH+T heated, two for just T, non heated
+
+uint8_t uart_rx[32];
+
 uint8_t stream = 0;
 uint8_t scan = 0;
-uint8_t rx_buff[20];
+
+volatile float data[4][2];	// Data array, four sensors, two kinds of data (RH, T)
 
 /* USER CODE END PV */
 
@@ -70,20 +76,32 @@ static void MX_TIM2_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	
+
   HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3); // Visual cue that timer is functional
 
   // Measurements and streaming
-  for (uint8_t i = 0; i < n_devices; i++) {
-    uint8_t addr = devices[i];
-    // Read data from sensor
+  for (uint8_t i = 0; i < i2c_bus.n_devices; i++) {
+    uint8_t addr = i2c_bus.devices[i];
+    // Read data from HYT271
+    /*
     HYT_RM_status = request_measurements(&hi2c1, addr, i2c_buff);
     HAL_Delay(100);
     HYT_Read_status = read_HYT271(&hi2c1, addr, i2c_buff);
     convert_data(i2c_buff, data[i]);
+    */
+
+    if (i < 2) {
+    	if(sensors[i].RH > 95) {
+    		heat_and_read_SHT45(&sensors[i], &i2c_bus);
+    	} else {
+    		read_SHT45(&sensors[i], &i2c_bus);
+    	}
+    }
 
     if (stream) {
-      transmit_HYT(&huart2, data[i], tx_buff, addr); // This should have a more appropriate name
+    	for (uint8_t i = 0; i < i2c_bus.n_devices;i++) {
+    		transmit_SHT45(&huart2, &sensors[i]);
+    	}
     }
   }
 }
@@ -97,27 +115,6 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
-	//HYT271 variables
-	uint8_t i2c_buff[4]; //Storage for raw data
-
-	float data[4][2];	// Data array, four sensors, two kinds of data (RH, T) 
-	uint8_t devices[4];
-	uint8_t n_devices = 0;
-
-  uint32_t SHT45_SNs[2]; //Space for two serial numbers
-	
-  // I2C Addresses
-	uint8_t ADDR_HYT_1 = 0x28;
-	uint8_t ADDR_HYT_2 = 0x71;
-
-	// Status bits
-	uint8_t HYT_RM_status = 0;
-	uint8_t HYT_Read_status = 0;
-
-	// Serial TX buffer
-	uint8_t tx_buff[20];
-
-  sensor_power(1); // Power on sensori(s) 
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -142,7 +139,16 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  HAL_UART_Receive_IT(&huart2, rx_buff, 4); // enable UART interrupt
+  HAL_UART_Receive_IT(&huart2, uart_rx, 4); // enable UART interrupt
+  HAL_TIM_Base_Start_IT(&htim2);
+  HAL_NVIC_DisableIRQ(TIM2_IRQn);
+
+  // Sensor initialization
+  i2c_bus.handle = &hi2c1; 	// assignment must be in a function
+  sensor_power(1); 				// Power on sensor(s)
+  i2c_bus.n_devices = scan_i2c(i2c_bus.handle, i2c_bus.devices);
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -151,25 +157,18 @@ int main(void)
   {
 	  if (scan) {
       // scan flag is set by incoming UART message
-		  n_devices = scan_i2c(&hi2c1, devices);
-		  broadcast_devices(&huart2, devices, n_devices);
+		  HAL_NVIC_DisableIRQ(TIM2_IRQn);
+		  i2c_bus.n_devices = scan_i2c(i2c_bus.handle, i2c_bus.devices);
+		  broadcast_devices(&huart2, i2c_bus.devices, i2c_bus.n_devices);
 		  scan = 0;
 	  }
 
-	  for (uint8_t i = 0; i < n_devices; i++) {
-		  uint8_t addr = devices[i];
-		  // Read data from sensor
-		  HYT_RM_status = request_measurements(&hi2c1, addr, i2c_buff);
-		  HAL_Delay(100);
-		  HYT_Read_status = read_HYT271(&hi2c1, addr, i2c_buff);
-		  convert_data(i2c_buff, data[i]);
-
-		  if (stream) {
-			  transmit_HYT(&huart2, data[i], tx_buff, addr); // This should have a more appropriate name
-		  }
+	  if (stream) {
+		  HAL_NVIC_EnableIRQ(TIM2_IRQn);
+	  } else {
+		  HAL_NVIC_DisableIRQ(TIM2_IRQn);
 	  }
 
-	  HAL_Delay(400); // set up timer instead of this janky delay
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

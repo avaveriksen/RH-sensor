@@ -1,4 +1,2 @@
-../Core/Src/i2c_driver.c:20:9:request_measurements	32	static
-../Core/Src/i2c_driver.c:31:9:read_HYT271	40	static
-../Core/Src/i2c_driver.c:49:6:convert_data	32	static
-../Core/Src/i2c_driver.c:61:9:scan_i2c	24	static
+../Core/Src/i2c_driver.c:10:9:scan_i2c	24	static
+../Core/Src/i2c_driver.c:25:9:manual_I2C	32	static

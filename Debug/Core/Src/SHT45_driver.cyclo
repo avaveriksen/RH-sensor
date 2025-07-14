@@ -1,0 +1,6 @@
+../Core/Src/SHT45_driver.c:5:9:read_SHT45	7
+../Core/Src/SHT45_driver.c:57:9:read_SHT45_SN	3
+../Core/Src/SHT45_driver.c:74:6:sensor_power	2
+../Core/Src/SHT45_driver.c:83:9:reset_SHT45	4
+../Core/Src/SHT45_driver.c:103:9:heat_and_read_SHT45	2
+../Core/Src/SHT45_driver.c:117:9:CRC_check	2

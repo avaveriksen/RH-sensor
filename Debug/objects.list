@@ -1,3 +1,5 @@
+"./Core/Src/HYT271_driver.o"
+"./Core/Src/SHT45_driver.o"
 "./Core/Src/i2c_driver.o"
 "./Core/Src/main.o"
 "./Core/Src/serial_driver.o"

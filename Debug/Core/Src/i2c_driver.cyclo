@@ -1,4 +1,2 @@
-../Core/Src/i2c_driver.c:20:9:request_measurements	2
-../Core/Src/i2c_driver.c:31:9:read_HYT271	3
-../Core/Src/i2c_driver.c:49:6:convert_data	1
-../Core/Src/i2c_driver.c:61:9:scan_i2c	3
+../Core/Src/i2c_driver.c:10:9:scan_i2c	3
+../Core/Src/i2c_driver.c:25:9:manual_I2C	4

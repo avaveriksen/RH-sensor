@@ -1,3 +1,4 @@
 ../Core/Src/serial_driver.c:11:6:HAL_UART_RxCpltCallback	40	static
-../Core/Src/serial_driver.c:39:9:transmit_HYT	56	static
-../Core/Src/serial_driver.c:48:9:broadcast_devices	56	static
+../Core/Src/serial_driver.c:38:9:transmit_SHT45	64	static
+../Core/Src/serial_driver.c:60:9:transmit_HYT	56	static
+../Core/Src/serial_driver.c:69:9:broadcast_devices	56	static

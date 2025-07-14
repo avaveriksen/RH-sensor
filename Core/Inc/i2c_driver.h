@@ -12,9 +12,14 @@
 #include "main.h"
 #include "stm32f3xx_hal.h"
 
-uint8_t request_measurements(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t *buff);
-uint8_t read_HYT271(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t *buff);
-void convert_data(uint8_t *buff, float *data);
-uint8_t scan_i2c(I2C_HandleTypeDef *hi2c, uint8_t * devices);
+typedef struct {
+	I2C_HandleTypeDef * handle;		// I2C periph. handle
+	volatile uint8_t message_length;// num of bytes for transmission or receiving
+	volatile uint8_t i2c_buff[6];	// buffer for received I2C bytes
+	volatile uint8_t n_devices;		// number of sensors
+	volatile uint8_t devices[4]; 	// addresses of sensors
+} I2Cdriver;
+
+uint8_t scan_i2c(I2C_HandleTypeDef *hi2c, volatile uint8_t * devices);
 
 #endif /* INC_I2C_DRIVER_H_ */

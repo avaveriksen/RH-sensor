@@ -1,3 +1,4 @@
 ../Core/Src/serial_driver.c:11:6:HAL_UART_RxCpltCallback	5
-../Core/Src/serial_driver.c:39:9:transmit_HYT	2
-../Core/Src/serial_driver.c:48:9:broadcast_devices	3
+../Core/Src/serial_driver.c:38:9:transmit_SHT45	2
+../Core/Src/serial_driver.c:60:9:transmit_HYT	2
+../Core/Src/serial_driver.c:69:9:broadcast_devices	3
