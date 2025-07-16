@@ -36,11 +36,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 }
 
 uint8_t transmit_SHT45(UART_HandleTypeDef * huart, SHT45 * sensor){
-	char tx[21] = "#s!#0#00000#00000#\n";
+	char tx[21] = "#x!#0#00000#00000#\n";
 	char appendix[6];
 
-	sprintf(tx, "#d!#%d", sensor->ID);
-
+	sprintf(tx, "#D#%d", sensor->ID); //'D' signifies data message
 	snprintf(appendix, sizeof(appendix), "#%06.2f", sensor->RH);	// Set up appendix with device address
 	strcat(tx, appendix); 						// concatenate 'appendix' to 'tx'
 	snprintf(appendix, sizeof(appendix), "#%06.2f", sensor->temperature);	// Set up appendix with device address, format as hex
@@ -55,6 +54,16 @@ uint8_t transmit_SHT45(UART_HandleTypeDef * huart, SHT45 * sensor){
 		return 0;
 	}
 }
+
+uint8_t data_transfer_concluded_message(UART_HandleTypeDef * huart) {
+  uint8_t tx[] = "#D!#\n"; // 'D!' signifies data transmission concluded
+  if(HAL_UART_Transmit(huart, tx, strlen(tx), HAL_MAX_DELAY) != HAL_OK) {
+    return 1;
+  } else {
+    return 0;
+  };
+}
+
 
 // Transmit HYT271 sensor data
 uint8_t transmit_HYT(UART_HandleTypeDef *huart, volatile float *data, volatile uint8_t *tx_buff, uint8_t addr) {

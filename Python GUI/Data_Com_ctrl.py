@@ -93,11 +93,14 @@ class DataMaster():
                 # If message carries sensor data
                 if self.msg[0] == "D":
                     # Update y-data
-                    self.UpdataXdata()
-                    sensor_addr = int(self.msg[1])               
-                    data_index = self.sensors.index(sensor_addr)
+                    sensor_ID = int(self.msg[1])               
+                    data_index = self.sensors.index(sensor_ID)
                     self.YData[data_index].append(float(self.msg[2]))
                     self.YData[data_index + 1].append(float(self.msg[3]))
+                
+                # Data transfer concluded message
+                if self.msg[0] == "D!":
+                    self.UpdataXdata()
 
                 # If message carries scan data
                 if self.msg[0] == "s!":

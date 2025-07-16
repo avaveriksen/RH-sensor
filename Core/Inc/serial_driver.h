@@ -30,5 +30,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 uint8_t transmit_SHT45(UART_HandleTypeDef * huart, SHT45 * sensor);
 uint8_t transmit_HYT(UART_HandleTypeDef *huart, volatile float *data, volatile uint8_t *tx_buff, uint8_t i);
 uint8_t broadcast_devices(UART_HandleTypeDef *huart, volatile uint8_t * devices, volatile uint8_t n_devices);
+uint8_t data_transfer_concluded_message(UART_HandleTypeDef * huart);
 
 #endif /* INC_SERIAL_DRIVER_H_ */
