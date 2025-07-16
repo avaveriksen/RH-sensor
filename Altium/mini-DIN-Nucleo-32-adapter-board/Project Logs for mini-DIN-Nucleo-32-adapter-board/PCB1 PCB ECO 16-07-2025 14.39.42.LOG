@@ -1,0 +1,16 @@
+Removed Pin From Net: NetName=SD1 Pin=U1-6
+Removed Pin From Net: NetName=SC1 Pin=U1-7
+Removed Pin From Net: NetName=SD2 Pin=U1-8
+Removed Pin From Net: NetName=SC2 Pin=U1-9
+Removed Pin From Net: NetName=SD3 Pin=U1-10
+Removed Pin From Net: NetName=SC3 Pin=U1-11
+Removed Pin From Net: NetName=SD4 Pin=U1-13
+Removed Pin From Net: NetName=SC4 Pin=U1-14
+Added Pin To Net: NetName=SD1 Pin=U1-4
+Added Pin To Net: NetName=SC1 Pin=U1-5
+Added Pin To Net: NetName=SD2 Pin=U1-6
+Added Pin To Net: NetName=SC2 Pin=U1-7
+Added Pin To Net: NetName=SD3 Pin=U1-8
+Added Pin To Net: NetName=SC3 Pin=U1-9
+Added Pin To Net: NetName=SD4 Pin=U1-10
+Added Pin To Net: NetName=SC4 Pin=U1-11

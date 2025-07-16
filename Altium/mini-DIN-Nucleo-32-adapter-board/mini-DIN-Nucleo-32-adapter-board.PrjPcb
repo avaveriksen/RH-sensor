@@ -70,7 +70,7 @@ DocumentUniqueId=WDCQMOCG
 DocumentPath=mini-DINs.SchDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
-AnnotationIndexControlEnabled=0
+AnnotationIndexControlEnabled=1
 AnnotateSuffix=
 AnnotateScope=All
 AnnotateOrder=0
@@ -101,6 +101,23 @@ GenerateClassCluster=0
 DocumentUniqueId=BVMBONIA
 
 [Document4]
+DocumentPath=..\..\..\..\..\Downloads\5749181-1\SnapEDApcb.PcbLib
+AnnotationEnabled=1
+AnnotateStartValue=1
+AnnotationIndexControlEnabled=0
+AnnotateSuffix=
+AnnotateScope=All
+AnnotateOrder=-1
+DoLibraryUpdate=1
+DoDatabaseUpdate=1
+ClassGenCCAutoEnabled=1
+ClassGenCCAutoRoomEnabled=0
+ClassGenNCAutoScope=None
+DItemRevisionGUID=
+GenerateClassCluster=0
+DocumentUniqueId=GMIVLSFD
+
+[Document5]
 DocumentPath=..\..\..\..\Anders Eriksen\Downloads\5749181-1\SnapEDApcb.PcbLib
 AnnotationEnabled=1
 AnnotateStartValue=1
