@@ -1,0 +1,19 @@
+Added Component: Designator=J?(SHT4X)
+Add component (AddParameter): Name = "Availability"; Value = "In Stock"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Check_prices"; Value = "https://www.snapeda.com/parts/SHT45-AD1F-R2/Sensirion/view-part/?ref=eda"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "MF"; Value = "Sensirion"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "MP"; Value = "SHT45-AD1F-R2"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Package"; Value = "Package"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Price"; Value = "None"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Purchase-URL"; Value = "https://pricing.snapeda.com/search/part/SHT45-AD1F-R2/?ref=eda"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "SnapEDA_Link"; Value = "https://www.snapeda.com/parts/SHT45-AD1F-R2/Sensirion/view-part/?ref=snap"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Value"; Value = ""; VariantName = "[No Variations]"
+Added Pin To Net: NetName=Sense_SCL Pin=J?-2
+Added Net: Name=Sense_SCL
+Added Pin To Net: NetName=Sense_SDA Pin=J?-1
+Added Net: Name=Sense_SDA
+Added Pin To Net: NetName=VDD Pin=J?-3
+Added Net: Name=VDD
+Added Pin To Net: NetName=VSS Pin=J?-4
+Added Net: Name=VSS
+Added Class: Name=Sheet1
