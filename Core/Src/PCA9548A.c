@@ -30,3 +30,26 @@ uint8_t set_switch_control(I2Cdriver * comm, uint8_t ctrl_byte) {
 	}
 }
 
+uint8_t scan_switch(I2Cdriver * comm) {
+
+	uint8_t identified = 0;
+
+	for (uint8_t i = 0; i < 4; i++) {
+		set_switch_control(comm, 1 << i);
+		identified += scan_i2c(comm->handle, comm->devices + identified);
+	}
+
+	return identified;
+}
+
+uint8_t identify_switch(I2Cdriver * comm) {
+
+	uint8_t switch_ack = read_switch_control(comm);
+
+	if (switch_ack == 0) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+

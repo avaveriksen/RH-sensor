@@ -58,6 +58,7 @@ uint8_t uart_rx[32];
 
 uint8_t stream = 0;
 uint8_t scan = 0;
+float version = 0.1; // depends on hardware. v0.2 has i2c switch.
 
 volatile float data[4][2];	// Data array, four sensors, two kinds of data (RH, T)
 
@@ -89,6 +90,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
     HYT_Read_status = read_HYT271(&hi2c1, addr, i2c_buff);
     convert_data(i2c_buff, data[i]);
     */
+
+    if (version == 0.2) {
+    	set_switch_control(&i2c_bus, 1 << i);
+    }
 
     if (i < 2) {
     	if(sensors[i].RH > 95) {
@@ -140,6 +145,7 @@ int main(void)
 	  MX_I2C1_Init();
 	  MX_USART2_UART_Init();
 	  MX_TIM2_Init();
+
 	  /* USER CODE BEGIN 2 */
 	  HAL_UART_Receive_IT(&huart2, uart_rx, 4); // enable UART interrupt
 	  HAL_TIM_Base_Start_IT(&htim2);
@@ -149,6 +155,19 @@ int main(void)
 	  i2c_bus.handle = &hi2c1; 	// assignment must be in a function
 	  sensor_power(1); 				// Power on sensor(s)
 	  i2c_bus.n_devices = scan_i2c(i2c_bus.handle, i2c_bus.devices);
+
+
+	  // check if i2c switch is installed, set version
+
+
+	  if(identify_switch(&i2c_bus)) {
+		  version = 0.2;
+	  }
+
+	  // Identify sensors on i2c bus
+	  if (version == 0.2) {
+		  i2c_bus.n_devices = scan_switch(&i2c_bus);
+	  }
 
 
 	  /* USER CODE END 2 */
