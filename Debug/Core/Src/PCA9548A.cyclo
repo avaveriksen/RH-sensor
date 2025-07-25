@@ -1,0 +1,2 @@
+../Core/Src/PCA9548A.c:15:9:read_switch_control	2
+../Core/Src/PCA9548A.c:24:9:set_switch_control	2

@@ -25,6 +25,8 @@ uint8_t set_switch_control(I2Cdriver * comm, uint8_t ctrl_byte) {
 
 	if (HAL_I2C_Master_Transmit(comm->handle, SWITCH_ADDRESS, ctrl_byte, 1, HAL_MAX_DELAY) != HAL_OK) {
 		return 2; // I2C error
+	} else {
+		return 0;
 	}
 }
 

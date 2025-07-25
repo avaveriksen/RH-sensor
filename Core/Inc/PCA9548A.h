@@ -11,5 +11,6 @@
 #define SWITCH_ADDRESS 0x70
 
 #include "main.h"
+#include "i2c_driver.h"
 
 #endif /* SRC_PCA9548A_H_ */
