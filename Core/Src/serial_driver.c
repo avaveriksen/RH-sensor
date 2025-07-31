@@ -12,7 +12,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	// Function to handle incoming serial messages
 
-	uint8_t ack[] = "#!#0#\n";
+	uint8_t ack[] = "#!!#0#\n";
 	uint8_t ack_stream[] = "#A!#\n";
 	uint8_t ack_stream_stop[] = "S!#\n";
 

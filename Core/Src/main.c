@@ -22,7 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "i2c_driver.h"
-#include "SHT45_driver.h"
+//#include "SHT45_driver.h"
 #include "serial_driver.h"
 #include <string.h>
 /* USER CODE END Includes */
@@ -154,7 +154,7 @@ int main(void)
 	  // Sensor initialization
 	  i2c_bus.handle = &hi2c1; 	// assignment must be in a function
 	  sensor_power(1); 				// Power on sensor(s)
-	  i2c_bus.n_devices = scan_i2c(i2c_bus.handle, i2c_bus.devices);
+	  //scan_i2c(&i2c_bus, sensors);
 
 
 	  // check if i2c switch is installed, set version
@@ -169,6 +169,9 @@ int main(void)
 		  i2c_bus.n_devices = scan_switch(&i2c_bus);
 	  }
 
+	  uint8_t reset = 0x94;
+	  HAL_I2C_Master_Transmit(&hi2c1, 0x44 << 1, &reset, 1, HAL_MAX_DELAY);
+	  HAL_Delay(10);
 
 	  /* USER CODE END 2 */
 
@@ -180,7 +183,7 @@ int main(void)
 	 	  if (scan) {
 	       // scan flag is set by incoming UART message
 	 		  HAL_NVIC_DisableIRQ(TIM2_IRQn);
-	 		  i2c_bus.n_devices = scan_i2c(i2c_bus.handle, i2c_bus.devices);
+	 		  scan_i2c(&i2c_bus, sensors);
 	 		  broadcast_devices(&huart2, i2c_bus.devices, i2c_bus.n_devices);
 	 		  scan = 0;
 	 	  }

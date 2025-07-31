@@ -9,7 +9,7 @@ from matplotlib.figure import Figure
 from PyQt6 import QtWidgets
 from PyQt6.QtCore import QSize
 from SHT45_lib import SHT45
-from plot_demo import demo_data
+#from plot_demo import demo_data
 
 
 
@@ -220,7 +220,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             # write a function to break connection and stop logging
 
     def start_button_event(self):
-        pass
+        self.sensor.start_stream()
+        if self.sensor.streaming:
+            self.start_button.setText("Stop Stream")
 
     def log_state_changed(self):
         if self.checkbox_log.isChecked():

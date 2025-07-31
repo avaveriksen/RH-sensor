@@ -12,6 +12,7 @@ class SHT45:
 
         # Data variables
         self.sensors = ['1', '2', '3', '4']
+        self.n_devices = 0
         self.row = [0] * 9  # [Time, T1, T2, T3, T4, RH1, RH2...]
         self.data = [[0, 0, 0, 0, 0, 0, 0, 0, 0]]
         self.time_zero = 0
@@ -20,6 +21,7 @@ class SHT45:
 
         # Task management
         self.threading = False
+        self.streaming = False
 
         # Serial variables
         self.baud = 38400
@@ -50,25 +52,43 @@ class SHT45:
     def establish_connection(self):
         self.filename_generator()
         try:
-            self.ser_conn = serial.Serial(self.port, self.baud, timeout=0.5)
+            self.ser_conn = serial.Serial(self.port, self.baud)
             print("Serial port opened.")
-            self.connected = True
         except Exception as e:
-            try:
-                self.port = "/dev/ttyACM1"
-                self.ser_conn = serial.Serial(self.port, self.baud, timeout=0.5)
-                print("Serial port opened.")
-                self.connected = True
-            except Exception as e:
-                print("Error opening serial port:", e)
-                return
+            print("Error opening serial port:", e)
+            return
 
-        self.thread1 = threading.Thread(target=self.listen, daemon=True)
-        self.thread1.start()
+        try:
+            self.ser_conn.reset_input_buffer()
+            self.ser_conn.reset_output_buffer()
+            self.ser_conn.write(b'#?#\n')
+            self.msg = self.ser_conn.readline().decode('utf-8')
+            self.decode_message()
+        except Exception as e:
+            print("Error: No ACK from transmitter", e)
+
+        self.ser_conn.write(b'#s#\n')
+        self.msg = self.ser_conn.readline().decode('utf-8')
+        self.decode_message()
+
+
+    def start_stream(self):
+        self.ser_conn.write(b'#A#\n')   # command to start streaming
+        self.msg = self.ser_conn.readline().decode('utf-8')
+        self.decode_message()
+        if self.streaming:
+            self.thread1 = threading.Thread(target=self.listen, daemon=True)
+            self.thread1.start()
 
     def decode_message(self):
         msg_fields = self.msg.strip().split("#")
-        if len(msg_fields) < 4 or msg_fields[1] != 'D!':
+        if (msg_fields[1] == '!!' or msg_fields[1] == '!'):
+            self.connected = True
+        elif msg_fields[1] == 'A!':
+            self.streaming = True
+        elif msg_fields[1] == 's!':
+            self.n_devices = msg_fields[2]
+        elif len(msg_fields) < 4 or msg_fields[1] != 'D!':
             return
         try:
             sensor = int(msg_fields[2])

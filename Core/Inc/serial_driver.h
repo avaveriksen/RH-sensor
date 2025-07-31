@@ -13,7 +13,7 @@
 #include "main.h"
 #include "stm32f3xx_hal.h"
 #include "i2c_driver.h"
-#include "SHT45_driver.h"
+//#include "SHT45_driver.h"
 
 extern uint8_t stream;
 extern uint8_t uart_rx[];
