@@ -9,11 +9,6 @@ from matplotlib.figure import Figure
 from PyQt6 import QtWidgets
 from PyQt6.QtCore import QSize
 from SHT45_lib import SHT45
-#from plot_demo import demo_data
-
-
-
-
 
 class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self, sensor):
@@ -41,7 +36,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.controls_widget.setLayout(self.layout_controls)
 
         self.connection_box =QtWidgets.QGroupBox("Connection")
-        self.display_box = QtWidgets.QGroupBox("Display")
+        self.display_box = QtWidgets.QGroupBox("Display Channel: Sensor SN")
         self.log_box = QtWidgets.QGroupBox("Data Logging")
 
         self.layout_connection = QtWidgets.QVBoxLayout()
@@ -57,6 +52,17 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         self.layout_display = QtWidgets.QVBoxLayout()
         self.checkbox_ch1 = QtWidgets.QCheckBox("Ch1")
+        self.checkbox_ch1.setStyleSheet("""
+                    QCheckBox::indicator:checked {
+                        background-color: blue;
+                        border: 1px solid gray;
+                    }
+
+                    QCheckBox::indicator:unchecked {
+                        background-color: white;
+                        border: 1px solid gray;
+                    }
+                """)
         self.checkbox_ch2 = QtWidgets.QCheckBox("Ch2")
         self.checkbox_ch3 = QtWidgets.QCheckBox("Ch3")
         self.checkbox_ch4 = QtWidgets.QCheckBox("Ch4")
@@ -79,10 +85,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.connect_button.clicked.connect(self.connect_button_event)
         self.start_button.clicked.connect(self.start_button_event)
         self.com_port_box.currentTextChanged.connect(self.port_changed)
-        self.checkbox_ch1.stateChanged.connect(self.log_state_changed)
-
-
-
+        self.checkbox_log.stateChanged.connect(self.log_state_changed)
 
         # Add boxes to nested widget
         self.layout_controls.addWidget(self.connection_box)
@@ -105,7 +108,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self._axRH.set_title("Relative Humidity")
         self._axT.set_title("Temperature")
 
-
         self._axRH.grid()
         self._axT.grid()
 
@@ -126,33 +128,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.TdataCH3 = []
         self.TdataCH4 = []
 
-
-        self.data_timer = self.canvas.new_timer(250)  # Update every 250ms
+        self.data_timer = self.canvas.new_timer(500)  # Update every 250ms
         self.data_timer.add_callback(self.update_plot_1)
         self.data_timer.start()
-
-    def _update_plot(self):
-        # with self.instrument.lock:
-        l = len(self.sensor.data)
-        if l > 50:
-            self.RHdata1 = [row[1] for row in self.sensor.data[-50:]]
-            self.RHdata2 = [row[2] for row in self.sensor.data[-50:]]
-            self.Tdata = [row[5] for row in self.sensor.data[-50:]]
-            self.xdata = [row[0] for row in self.sensor.data[-50:]]
-        else:
-            self.RHdata1 = [row[1] for row in self.sensor.data]
-            self.Tdata = [row[5] for row in self.sensor.data[-50:]]
-            self.xdata = [row[0] for row in self.sensor.data]
-
-        self._lineRH.set_data(self.xdata, [self.RHdata1, self.RHdata2])
-        self._lineT.set_data(self.xdata, self.Tdata)
-        self._axRH.relim()
-        self._axRH.autoscale_view()
-
-        self._axT.relim()
-        self._axT.autoscale_view()
-
-        self.canvas.draw_idle()
 
     def update_plot_1(self):
         l = len(self.sensor.data)
@@ -181,6 +159,16 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         self._axRH.clear()
         self._axT.clear()
+
+        self._axRH.set_title("Relative Humidity")
+        self._axT.set_title("Temperature")
+
+        self._axRH.grid()
+        self._axT.grid()
+
+        self._axRH.set_ylabel("Relative Humidity (%)")
+        self._axT.set_ylabel("Temperature (C)")
+        self._axT.set_xlabel("Time (s)")
 
         if self.checkbox_ch1.isChecked():
             self._axRH.plot(self.xdata, self.RHdataCH1, color='tab:blue')
@@ -215,20 +203,40 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.sensor.establish_connection()
             if self.sensor.connected:
                 self.connect_button.setText("Disconnect")
+                if (self.sensor.sensors[0] != ''):
+                    self.checkbox_ch1.setText("Ch1: " + self.sensor.sensors[0])
+                elif (self.sensor.sensors[1] != ''):
+                    self.checkbox_ch2.setText("Ch2: " + self.sensor.sensors[1])
+                elif (self.sensor.sensors[2] != ''):
+                    self.checkbox_ch2.setText("Ch3: " + self.sensor.sensors[2])
+                elif (self.sensor.sensors[3] != ''):
+                    self.checkbox_ch2.setText("Ch4: " + self.sensor.sensors[3])
+
         elif self.connect_button.text()=="Disconnect":
-            pass
-            # write a function to break connection and stop logging
+            self.sensor.stop_stream()
+            self.sensor.close_connection()
+            if not self.sensor.connected:
+                self.connect_button.setText("Connect")
 
     def start_button_event(self):
-        self.sensor.start_stream()
-        if self.sensor.streaming:
-            self.start_button.setText("Stop Stream")
+        if (self.sensor.streaming == False):
+            self.sensor.start_stream()
+            if self.sensor.streaming:
+                self.start_button.setText("Stop Stream")
+        else:
+            self.sensor.stop_stream()
+            if not self.sensor.streaming:
+                print("start_button_event(): enter if")
+                self.start_button.setText("Start Stream")
+                print("start_button_event(): After set text")
 
     def log_state_changed(self):
         if self.checkbox_log.isChecked():
             self.sensor.logging = True
         else:
             self.sensor.logging = False
+
+        print("Log state: True") if self.sensor.logging else print("Log state: False")
 
 if __name__ == "__main__":
 

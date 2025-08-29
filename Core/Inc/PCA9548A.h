@@ -13,4 +13,8 @@
 #include "main.h"
 #include "i2c_driver.h"
 
+uint8_t read_switch_control(I2Cdriver * comm);
+uint8_t set_switch_control(I2Cdriver * comm, uint8_t ctrl_byte);
+uint8_t identify_switch(I2Cdriver * comm);
+
 #endif /* SRC_PCA9548A_H_ */

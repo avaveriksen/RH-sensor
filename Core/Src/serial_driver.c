@@ -14,7 +14,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 	uint8_t ack[] = "#!!#0#\n";
 	uint8_t ack_stream[] = "#A!#\n";
-	uint8_t ack_stream_stop[] = "S!#\n";
+	uint8_t ack_stream_stop[] = "#S!#\n";
 
 	// do something with the data
 	if (strcmp(uart_rx, "#?#\n") == 0) {
@@ -22,11 +22,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	} else if(strcmp(uart_rx, "#A#\n") == 0) {
 		// set stream flag
 		stream = 1;
-		HAL_UART_Transmit(huart, ack_stream, strlen(ack), HAL_MAX_DELAY);
+		HAL_UART_Transmit(huart, ack_stream, strlen(ack_stream), HAL_MAX_DELAY);
 	} else if (strcmp(uart_rx, "#S#\n") == 0) {
 		// reset stream flag (stop streaming)
 		stream = 0;
-		HAL_UART_Transmit(huart, ack_stream_stop, strlen(ack), HAL_MAX_DELAY);
+		HAL_UART_Transmit(huart, ack_stream_stop, strlen(ack_stream_stop), HAL_MAX_DELAY);
 	} else if (strcmp(uart_rx, "#s#\n") == 0) {
 		// set scan flag
 		scan = 1;
@@ -36,15 +36,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 }
 
 uint8_t transmit_SHT45(UART_HandleTypeDef * huart, SHT45 * sensor){
-	char tx[21] = "#x!#0#00000#00000#\n";
-	char appendix[6];
+	char tx[21] = "#x!#0#000.00#000.00#\n";
+	char appendix[7];
 
 	sprintf(tx, "#D#%d", sensor->ID); //'D' signifies data message
-	snprintf(appendix, sizeof(appendix), "#%06.2f", sensor->RH);	// Set up appendix with device address
+	snprintf(appendix, sizeof(appendix) + 1, "#%07.3f", sensor->RH);	// Set up appendix with device address
 	strcat(tx, appendix); 						// concatenate 'appendix' to 'tx'
-	snprintf(appendix, sizeof(appendix), "#%06.2f", sensor->temperature);	// Set up appendix with device address, format as hex
+	snprintf(appendix, sizeof(appendix) + 1, "#%07.3f", sensor->temperature);	// Set up appendix with device address, format as hex
 	strcat(tx, appendix); 						// concatenate 'appendix' to 'tx'
-
 
 	strcat(tx, "#\n");
 
@@ -75,25 +74,28 @@ uint8_t transmit_HYT(UART_HandleTypeDef *huart, volatile float *data, volatile u
 	}
 }
 
-uint8_t broadcast_devices(UART_HandleTypeDef *huart, volatile uint8_t * devices, volatile uint8_t n_devices) {
-	uint8_t tx[19] = "#s!#0#00#00#00#00#\n";
-	uint8_t appendix[4];
+uint8_t broadcast_devices(UART_HandleTypeDef *huart, SHT45 * sensors) {
+	uint8_t tx[40];
+	uint8_t appendix[32];
 
-	sprintf(tx, "#s!#%d", n_devices);
+	for (uint8_t i = 0; i < 4; i++) {
 
-	for (uint8_t i = 0; i < n_devices; i++) {
-
-		sprintf(appendix, "#%02X", *(devices + i));	// Set up appendix with device address, format as hex
-		strcat(tx, appendix); 						// concatenate 'appendix' to 'tx'
+		if (sensors->address == 0x44) {
+			sprintf(tx, "#s!#%d#", i + 1);
+			sprintf(appendix, "%d#\n", (sensors + i)->SN);
+			strcat(tx, appendix);
+			if(HAL_UART_Transmit(huart, tx, strlen(tx), HAL_MAX_DELAY) != HAL_OK) {
+				return 1;
+			} else {
+				return 0;
+			}
+		}
+		sensors++;
 	}
 
-	strcat(tx, "#\n");
 
-	if(HAL_UART_Transmit(huart, tx, strlen(tx), HAL_MAX_DELAY) != HAL_OK) {
-		return 1;
-	} else {
-		return 0;
-	}
+
+
 }
 
 
