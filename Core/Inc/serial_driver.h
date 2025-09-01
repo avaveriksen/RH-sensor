@@ -18,6 +18,8 @@
 extern uint8_t stream;
 extern uint8_t uart_rx[];
 extern uint8_t scan;
+extern uint8_t i2c_ch;
+extern uint8_t i2c_ch_event;
 
 typedef struct {
 	UART_HandleTypeDef * handle;

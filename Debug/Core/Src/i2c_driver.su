@@ -1,5 +1,5 @@
-../Core/Src/i2c_driver.c:10:9:scan_i2c	32	static
-../Core/Src/i2c_driver.c:32:10:read_SHT45	56	static
-../Core/Src/i2c_driver.c:87:9:read_SHT45_SN	40	static
-../Core/Src/i2c_driver.c:115:6:sensor_power	16	static
-../Core/Src/i2c_driver.c:124:9:reset_SHT45	32	static
+../Core/Src/i2c_driver.c:11:6:scan_i2c	40	static
+../Core/Src/i2c_driver.c:26:10:read_SHT45	56	static
+../Core/Src/i2c_driver.c:85:10:read_SHT45_SN	32	static
+../Core/Src/i2c_driver.c:113:6:sensor_power	16	static
+../Core/Src/i2c_driver.c:122:9:reset_SHT45	32	static

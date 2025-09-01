@@ -54,7 +54,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.checkbox_ch1 = QtWidgets.QCheckBox("Ch1")
         self.checkbox_ch1.setStyleSheet("""
                     QCheckBox::indicator:checked {
-                        background-color: blue;
+                        background-color: #1f77b4;
                         border: 1px solid gray;
                     }
 
@@ -64,8 +64,41 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                     }
                 """)
         self.checkbox_ch2 = QtWidgets.QCheckBox("Ch2")
+        self.checkbox_ch2.setStyleSheet("""
+                            QCheckBox::indicator:checked {
+                                background-color: #d62728;
+                                border: 1px solid gray;
+                            }
+
+                            QCheckBox::indicator:unchecked {
+                                background-color: white;
+                                border: 1px solid gray;
+                            }
+                        """)
         self.checkbox_ch3 = QtWidgets.QCheckBox("Ch3")
+        self.checkbox_ch3.setStyleSheet("""
+                            QCheckBox::indicator:checked {
+                                background-color: #2ca02c;
+                                border: 1px solid gray;
+                            }
+
+                            QCheckBox::indicator:unchecked {
+                                background-color: white;
+                                border: 1px solid gray;
+                            }
+                        """)
         self.checkbox_ch4 = QtWidgets.QCheckBox("Ch4")
+        self.checkbox_ch4.setStyleSheet("""
+                            QCheckBox::indicator:checked {
+                                background-color: #ff7f0e;
+                                border: 1px solid gray;
+                            }
+
+                            QCheckBox::indicator:unchecked {
+                                background-color: white;
+                                border: 1px solid gray;
+                            }
+                        """)
         self.layout_display.addWidget(self.checkbox_ch1)
         self.layout_display.addWidget(self.checkbox_ch2)
         self.layout_display.addWidget(self.checkbox_ch3)
@@ -128,7 +161,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.TdataCH3 = []
         self.TdataCH4 = []
 
-        self.data_timer = self.canvas.new_timer(500)  # Update every 250ms
+        self.data_timer = self.canvas.new_timer(500)  # Update every 500ms
         self.data_timer.add_callback(self.update_plot_1)
         self.data_timer.start()
 
@@ -167,7 +200,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self._axT.grid()
 
         self._axRH.set_ylabel("Relative Humidity (%)")
-        self._axT.set_ylabel("Temperature (C)")
+        self._axT.set_ylabel("Temperature (°C)")
         self._axT.set_xlabel("Time (s)")
 
         if self.checkbox_ch1.isChecked():
@@ -199,17 +232,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.sensor.port = self.com_port_box.currentText()
 
     def connect_button_event(self):
+
         if self.connect_button.text()=="Connect":
             self.sensor.establish_connection()
             if self.sensor.connected:
                 self.connect_button.setText("Disconnect")
                 if (self.sensor.sensors[0] != ''):
                     self.checkbox_ch1.setText("Ch1: " + self.sensor.sensors[0])
-                elif (self.sensor.sensors[1] != ''):
+                if (self.sensor.sensors[1] != ''):
                     self.checkbox_ch2.setText("Ch2: " + self.sensor.sensors[1])
-                elif (self.sensor.sensors[2] != ''):
+                if (self.sensor.sensors[2] != ''):
                     self.checkbox_ch2.setText("Ch3: " + self.sensor.sensors[2])
-                elif (self.sensor.sensors[3] != ''):
+                if (self.sensor.sensors[3] != ''):
                     self.checkbox_ch2.setText("Ch4: " + self.sensor.sensors[3])
 
         elif self.connect_button.text()=="Disconnect":

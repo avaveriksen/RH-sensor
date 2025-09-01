@@ -9,7 +9,7 @@
 
 /*
  * Channel selection: The switch has a control register which is written to or read
- * by reading/transmitting to the device at its address.
+ * by reading/transmitting to  the device at its address.
  */
 
 uint8_t read_switch_control(I2Cdriver * comm){
@@ -19,25 +19,34 @@ uint8_t read_switch_control(I2Cdriver * comm){
 	} else {
 		return *comm->i2c_buff;
 	}
+
 }
 
-uint8_t set_switch_control(I2Cdriver * comm, uint8_t ctrl_byte) {
+uint8_t set_switch_control(I2Cdriver * comm, uint8_t ch) {
 
-	if (HAL_I2C_Master_Transmit(comm->handle, SWITCH_ADDRESS, ctrl_byte, 1, HAL_MAX_DELAY) != HAL_OK) {
+	comm->i2c_rx_buff = ch;
+
+	if (HAL_I2C_Master_Transmit(comm->handle, (uint16_t)(SWITCH_ADDRESS << 1), &comm->i2c_rx_buff, 1, HAL_MAX_DELAY) != HAL_OK) {
 		return 2; // I2C error
 	} else {
-		return 0;
+		if (read_switch_control(comm) == ch) {
+			return 0;
+		} else {
+			// control register error
+			return 1;
+		}
+
 	}
+
+
 }
 
 uint8_t identify_switch(I2Cdriver * comm) {
 
-	uint8_t switch_ack = read_switch_control(comm);
-
-	if (switch_ack == 0) {
-		return 1;
-	} else {
+	if (HAL_I2C_IsDeviceReady(comm->handle, (uint16_t)(SWITCH_ADDRESS << 1), 3, 5) != HAL_OK) {
 		return 0;
+	} else {
+		return 1;
 	}
 }
 

@@ -81,8 +81,10 @@ class SHT45:
             print("Error: No ACK from transmitter", e)
 
         self.ser_conn.write(b'#s#\n')
-        self.msg = self.ser_conn.readline().decode('utf-8')
-        self.decode_message()
+        time.sleep(0.1)
+        while self.ser_conn.in_waiting > 0:
+            self.msg = self.ser_conn.readline().decode('utf-8')
+            self.decode_message()
 
     def close_connection(self):
         try:
@@ -142,13 +144,15 @@ class SHT45:
 
     def listen(self):
         while self.threading:
-            try:
-                self.msg = self.ser_conn.readline().decode('utf-8')
-                #print(self.msg)
-                self.decode_message()
-            except Exception as e:
-                print("Serial read error:", e)
-                continue
+            while self.ser_conn.in_waiting > 0:
+                try:
+                    self.msg = self.ser_conn.readline().decode('utf-8')
+                    #print(self.msg)
+                    self.decode_message()
+                    time.sleep(0.01)
+                except Exception as e:
+                    print("Serial read error:", e)
+                    continue
 
     def get_ports_list(self):
         ports = comports()

@@ -30,6 +30,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	} else if (strcmp(uart_rx, "#s#\n") == 0) {
 		// set scan flag
 		scan = 1;
+	} else if (strcmp(uart_rx, "#1#\n") == 0) {
+		i2c_ch = 1;
+		i2c_ch_event = 1;
+	} else if (strcmp(uart_rx, "#2#\n") == 0) {
+		i2c_ch = 2;
+		i2c_ch_event = 1;
 	}
 
 	HAL_UART_Receive_IT(huart, uart_rx, 4);
@@ -75,27 +81,25 @@ uint8_t transmit_HYT(UART_HandleTypeDef *huart, volatile float *data, volatile u
 }
 
 uint8_t broadcast_devices(UART_HandleTypeDef *huart, SHT45 * sensors) {
-	uint8_t tx[40];
-	uint8_t appendix[32];
+	char tx[40] = {};
+	char appendix[32] = {};
 
 	for (uint8_t i = 0; i < 4; i++) {
 
-		if (sensors->address == 0x44) {
+		if (sensors[i].address == 0x44) {
 			sprintf(tx, "#s!#%d#", i + 1);
-			sprintf(appendix, "%d#\n", (sensors + i)->SN);
+			sprintf(appendix, "%lu#\n", sensors[i].SN);
 			strcat(tx, appendix);
-			if(HAL_UART_Transmit(huart, tx, strlen(tx), HAL_MAX_DELAY) != HAL_OK) {
+
+			if(HAL_UART_Transmit(huart, &tx, strlen(tx), HAL_MAX_DELAY) != HAL_OK) {
 				return 1;
-			} else {
-				return 0;
 			}
+
+			HAL_Delay(10);
 		}
-		sensors++;
 	}
 
-
-
-
+	return 0;
 }
 
 

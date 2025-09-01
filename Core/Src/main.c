@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "i2c_driver.h"
+#include "PCA9548A.h"
 //#include "SHT45_driver.h"
 #include "serial_driver.h"
 #include <string.h>
@@ -60,8 +61,10 @@ uint8_t uart_rx[32];
 
 uint8_t stream = 0;
 uint8_t scan = 0;
+uint8_t i2c_ch = 1;
+uint8_t i2c_ch_event = 0;
 uint8_t measure = 0;
-float version = 0.1; // depends on hardware. v0.2 has i2c switch.
+float version = 2; // depends on hardware. v0.2 has i2c switch.
 
 volatile float data[4][2];	// Data array, four sensors, two kinds of data (RH, T)
 
@@ -85,29 +88,25 @@ void measure_routine(){
 	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3); // Visual cue that timer is functional
 
 	  for (uint8_t i = 0; i < i2c_bus.n_devices; i++) {
-	    if (version == 0.2) {
-	    	set_switch_control(&i2c_bus, 1 << i);
-	    }
+		set_switch_control(&i2c_bus, 1 << i);
 
-	    if (i < 2) {
-	    	if(sensors[i].RH > 95) {
-
-	    	} else {
-	    		read_SHT45(&sensors[i], &i2c_bus, &hcrc);
-	    	}
-	    }
+		if(sensors[i].RH > 97) {
+			read_SHT45(&sensors[i], &i2c_bus, &hcrc, HEAT_ON);
+		} else {
+			read_SHT45(&sensors[i], &i2c_bus, &hcrc, HEAT_OFF);
+		}
 
 	    if (stream) {
 	    	for (uint8_t i = 0; i < i2c_bus.n_devices;i++) {
 	    		transmit_SHT45(&huart2, &sensors[i]);
 	    	}
-
 	      data_transfer_concluded_message(&huart2);
 	    }
 	  }
 
 	  measure = 0;
-}
+  }
+
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	measure = 1;
@@ -148,47 +147,40 @@ int main(void)
   MX_TIM2_Init();
   MX_CRC_Init();
   /* USER CODE BEGIN 2 */
-	  HAL_UART_Receive_IT(&huart2, uart_rx, 4); // enable UART interrupt
-	  HAL_TIM_Base_Start_IT(&htim2);
-	  HAL_NVIC_DisableIRQ(TIM2_IRQn);
+  HAL_UART_Receive_IT(&huart2, uart_rx, 4); // enable UART interrupt
+  HAL_TIM_Base_Start_IT(&htim2);
+  HAL_NVIC_DisableIRQ(TIM2_IRQn);
 
 
-	  //CRC check
-	  uint8_t crc_buffer[2] = {81, 23};
-	  uint8_t crc = HAL_CRC_Calculate(&hcrc, crc_buffer, 2);
+  //CRC check
+  uint8_t crc_buffer[2] = {81, 23};
+  uint8_t crc = HAL_CRC_Calculate(&hcrc, crc_buffer, 2);
+
+  // Sensor initialization
+  i2c_bus.handle = &hi2c1; 	// assignment must be in a function
 
 
-	  // Sensor initialization
-	  i2c_bus.handle = &hi2c1; 	// assignment must be in a function
-	  sensor_power(1); 				// Power on sensor(s)
-	  //scan_i2c(&i2c_bus, sensors);
+  // Identify sensors on i2c bus
 
 
-	  // check if i2c switch is installed, set version
+  for (uint8_t i = 0; i < 4; i++) {
+		set_switch_control(&i2c_bus, 1 << i);
+		if (HAL_I2C_IsDeviceReady(i2c_bus.handle, (uint16_t)(0x44 << 1), 3, 5) == HAL_OK) {
+			sensors[i].address = 0x44;
+			sensors[i].ID = i + 1;
+			sensors[i].SN = read_SHT45_SN(&i2c_bus, &hcrc);
+			i2c_bus.n_devices++;
+			i2c_bus.devices[i] = 0x44;
 
-
-	  if(identify_switch(&i2c_bus)) {
-		  version = 0.2;
-	  }
-
-	  // Identify sensors on i2c bus
-	  /*
-	  if (version == 0.2) {
-		  i2c_bus.n_devices = scan_switch(&i2c_bus);
-	  }
-	  */
-
-	  uint8_t reset = 0x94;
-	  HAL_I2C_Master_Transmit(&hi2c1, 0x44 << 1, &reset, 1, HAL_MAX_DELAY);
-	  HAL_Delay(10);
+		}
+	}
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-	  while (1)
-	   {
+  while (1) {
+
 	 	  if (scan) {
 	       // scan flag is set by incoming UART message
 	 		  HAL_NVIC_DisableIRQ(TIM2_IRQn);
@@ -206,46 +198,20 @@ int main(void)
 	 	  if (measure) {
 	 		  measure_routine();
 	 	  }
-	 	/*
-	 	 // Buffer to store RX data
-	 	 uint8_t buffer[6] = {};
-	 	 uint8_t cmd = 0xFD;
 
-	 	 // Request High Precision reading - no error
-		 if(HAL_I2C_Master_Transmit(&hi2c1, (uint16_t)(0x44 << 1),&cmd,1, HAL_MAX_DELAY) != HAL_OK){
-			  uint8_t dummy = 1;
-		  }
-
-		 HAL_Delay(15); //have tried delays of 20, 50, 100 and 200 ms
-
-		 // Reading sensor - always get NACK from sensor, hi2c1 errorcode 4 (NACK error)
-		 HAL_StatusTypeDef ret = HAL_I2C_Master_Receive(&hi2c1, (uint16_t)(0x44 << 1), buffer, 6, 50);
-
-		 while(ret != HAL_OK) {
-			 ret = HAL_I2C_Master_Receive(&hi2c1, (uint16_t)(0x44 << 1), buffer, 6, 50);
-		 }
-
-		 // Read serial number
-		 cmd = 0x89;
-		 if(HAL_I2C_Master_Transmit(&hi2c1, (uint16_t)(0x44 << 1),&cmd,1, HAL_MAX_DELAY) != HAL_OK){
-			  uint8_t dummy = 1;
-		  }
-		 HAL_Delay(10);
-
-		 ret = HAL_I2C_Master_Receive(&hi2c1, (uint16_t)(0x44 << 1), buffer, 6, HAL_MAX_DELAY);
-
-		 while(ret != HAL_OK) {
-			 ret = HAL_I2C_Master_Receive(&hi2c1, (uint16_t)(0x44 << 1), buffer, 6, HAL_MAX_DELAY);
-		 }
-		 */
-
+	 	  if(i2c_ch_event) {
+	 		  i2c_ch_event = 0;
+	 		  set_switch_control(&i2c_bus, i2c_ch);
+	 	  }
 
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	   }
+
   /* USER CODE END 3 */
+}
+
 }
 
 /**
