@@ -1,0 +1,64 @@
+('C:\\Users\\Anders Eriksen\\Documents\\STM32CubeIDE '
+ 'Workspace\\N32-HYT271\\SHT45-widget\\app\\build\\app\\app.pkg',
+ {'BINARY': True,
+  'DATA': True,
+  'EXECUTABLE': True,
+  'EXTENSION': True,
+  'PYMODULE': True,
+  'PYSOURCE': True,
+  'PYZ': False,
+  'SPLASH': True,
+  'SYMLINK': False},
+ [('pyi-contents-directory _internal', '', 'OPTION'),
+  ('PYZ-00.pyz',
+   'C:\\Users\\Anders Eriksen\\Documents\\STM32CubeIDE '
+   'Workspace\\N32-HYT271\\SHT45-widget\\app\\build\\app\\PYZ-00.pyz',
+   'PYZ'),
+  ('struct',
+   'C:\\Users\\Anders Eriksen\\Documents\\STM32CubeIDE '
+   'Workspace\\N32-HYT271\\SHT45-widget\\app\\build\\app\\localpycs\\struct.pyc',
+   'PYMODULE'),
+  ('pyimod01_archive',
+   'C:\\Users\\Anders Eriksen\\Documents\\STM32CubeIDE '
+   'Workspace\\N32-HYT271\\SHT45-widget\\app\\build\\app\\localpycs\\pyimod01_archive.pyc',
+   'PYMODULE'),
+  ('pyimod02_importers',
+   'C:\\Users\\Anders Eriksen\\Documents\\STM32CubeIDE '
+   'Workspace\\N32-HYT271\\SHT45-widget\\app\\build\\app\\localpycs\\pyimod02_importers.pyc',
+   'PYMODULE'),
+  ('pyimod03_ctypes',
+   'C:\\Users\\Anders Eriksen\\Documents\\STM32CubeIDE '
+   'Workspace\\N32-HYT271\\SHT45-widget\\app\\build\\app\\localpycs\\pyimod03_ctypes.pyc',
+   'PYMODULE'),
+  ('pyimod04_pywin32',
+   'C:\\Users\\Anders Eriksen\\Documents\\STM32CubeIDE '
+   'Workspace\\N32-HYT271\\SHT45-widget\\app\\build\\app\\localpycs\\pyimod04_pywin32.pyc',
+   'PYMODULE'),
+  ('pyiboot01_bootstrap',
+   'C:\\Users\\Anders Eriksen\\Documents\\STM32CubeIDE '
+   'Workspace\\N32-HYT271\\SHT45-widget\\qt-env\\Lib\\site-packages\\PyInstaller\\loader\\pyiboot01_bootstrap.py',
+   'PYSOURCE'),
+  ('pyi_rth_inspect',
+   'C:\\Users\\Anders Eriksen\\Documents\\STM32CubeIDE '
+   'Workspace\\N32-HYT271\\SHT45-widget\\qt-env\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_inspect.py',
+   'PYSOURCE'),
+  ('pyi_rth_pyqt6',
+   'C:\\Users\\Anders Eriksen\\Documents\\STM32CubeIDE '
+   'Workspace\\N32-HYT271\\SHT45-widget\\qt-env\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pyqt6.py',
+   'PYSOURCE'),
+  ('pyi_rth_pkgutil',
+   'C:\\Users\\Anders Eriksen\\Documents\\STM32CubeIDE '
+   'Workspace\\N32-HYT271\\SHT45-widget\\qt-env\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgutil.py',
+   'PYSOURCE'),
+  ('app',
+   'C:\\Users\\Anders Eriksen\\Documents\\STM32CubeIDE '
+   'Workspace\\N32-HYT271\\SHT45-widget\\app\\app.py',
+   'PYSOURCE')],
+ 'python312.dll',
+ True,
+ False,
+ False,
+ [],
+ None,
+ None,
+ None)
