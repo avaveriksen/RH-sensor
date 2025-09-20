@@ -1,5 +1,4 @@
 ../Core/Src/i2c_driver.c:11:6:scan_i2c	3
-../Core/Src/i2c_driver.c:26:10:read_SHT45	8
-../Core/Src/i2c_driver.c:85:10:read_SHT45_SN	4
-../Core/Src/i2c_driver.c:113:6:sensor_power	2
-../Core/Src/i2c_driver.c:122:9:reset_SHT45	4
+../Core/Src/i2c_driver.c:27:9:read_SHT45	10
+../Core/Src/i2c_driver.c:108:9:read_SHT45_SN	4
+../Core/Src/i2c_driver.c:144:9:reset_SHT45	2

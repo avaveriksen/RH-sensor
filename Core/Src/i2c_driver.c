@@ -17,7 +17,7 @@ void scan_i2c(I2Cdriver * comm, SHT45 * sensors, CRC_HandleTypeDef * hcrc) {
 			// if sensor present on channel
 			sensors[i].address = 0x44; 	// redundant, all sensors have address 0x44
 			sensors[i].ID = i + 1;		// corresponds to channel number (1, 2, 3, 4)
-			sensors[i].SN = read_SHT45_SN(comm, hcrc); // Get serial number
+			read_SHT45_SN(comm, &sensors[i], hcrc); // Get serial number
 			comm->n_devices++;			// Update sensor count
 			comm->devices[i] = 0x44;	// Redundant
 		}
@@ -30,10 +30,10 @@ uint8_t read_SHT45(SHT45 * sensor, I2Cdriver * comm, CRC_HandleTypeDef * hcrc, u
 	/*
 	Return error codes:
 	0: No error
-	1: Transmit Measurement Request failed
-	2: Measurement Receive failed
-	3: Temperature CRC failure
-	4: RH CRC failure
+	1: I2C Transmit Measurement Request failed
+	2: I2C Receive Measurement failed
+	3: CRC Temperature failure
+	4: CRC RH failure
 	*/
 
 	uint8_t addr = sensor->address; 	// 0x44 for all sensors
@@ -74,7 +74,7 @@ uint8_t read_SHT45(SHT45 * sensor, I2Cdriver * comm, CRC_HandleTypeDef * hcrc, u
 	}
 
 
-	// If i2c successfullm, convert received data to real values
+	// If i2c successfull, convert received data to real values
 	uint16_t t_ticks = (comm->i2c_buff[0] << 8) + comm->i2c_buff[1];
 	uint8_t crc_T = HAL_CRC_Calculate(hcrc, comm->i2c_buff, 2);
 	if (crc_T == comm->i2c_buff[2]) {
@@ -105,59 +105,53 @@ uint8_t read_SHT45(SHT45 * sensor, I2Cdriver * comm, CRC_HandleTypeDef * hcrc, u
 
 }
 
-uint32_t read_SHT45_SN(I2Cdriver * comm, CRC_HandleTypeDef * hcrc ) {
+uint8_t read_SHT45_SN(I2Cdriver * comm, SHT45 * sensor, CRC_HandleTypeDef * hcrc) {
 
-	// SHT45s are shipped with a serial number in memory.
+	/* SHT45s are shipped with a 32 bit serial number in memory.
+	 *
+	 * Error codes:
+	 * 0: No error
+	 * 1: I2C Transmit SN request error
+	 * 2: I2C Receive SN error
+	 * 3: CRC SN error
+	 */
 	uint8_t cmd = 0x89;
-	uint32_t SN = 0;
+	uint32_t SN = 123;	// Default garbage value
 
 	// Request SN data
 	if(HAL_I2C_Master_Transmit(comm->handle, (uint16_t)(0x44 << 1), &cmd, 1, I2C_TIMEOUT_DURATION) != HAL_OK){
-		return 2; // I2C error
+		return 2; // I2C transmit error
 	}
 
-	HAL_Delay(15);
+	HAL_Delay(15); // Sensor thinking time
 
 	// Retrieve SN data
 	if (HAL_I2C_Master_Receive(comm->handle, (uint16_t)(0x44 << 1), comm->i2c_buff, 6, I2C_TIMEOUT_DURATION) == HAL_OK){
+		// check validity of data
 		uint8_t crc = HAL_CRC_Calculate(hcrc, comm->i2c_buff, 2);
 		if (crc == comm->i2c_buff[2]) {
-			SN = (*(comm->i2c_buff) << 3*8) + (*(comm->i2c_buff + 1) << 2*8) + (*(comm->i2c_buff + 3) << 8) + (*(comm->i2c_buff + 4));
+			sensor->SN = (*(comm->i2c_buff) << 3*8) + (*(comm->i2c_buff + 1) << 2*8) + (*(comm->i2c_buff + 3) << 8) + (*(comm->i2c_buff + 4));
 		} else {
-			return 1; //CRC error
+			return 3; //CRC error
 		}
 	} else {
-		return 2; //I2C error
+		return 2; //I2C receive error
 	}
 
-	return SN;
+	return 0;
 }
 
-void sensor_power(uint8_t state){
-  // Enable or diable power to sensor(s). All sensors are powered by the same source.
-  if(state){
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_SET);
-  } else {
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET);
-  }
-}
-
-uint8_t reset_SHT45(I2C_HandleTypeDef * hi2c, char variant){
+uint8_t reset_SHT45(I2C_HandleTypeDef * hi2c){
   // Soft reset of sensor
 
-  uint8_t addr = 0;
+  uint8_t addr = 0x44;
+  uint8_t cmd_reset = 0x94;
 
-  if(variant == 'A') {
-    addr = 0x44;
-  } else if (variant == 'B') {
-    addr = 0x45;
-  } else {
-    //error
+  if(HAL_I2C_Master_Transmit(hi2c, addr << 1, &cmd_reset, 1, I2C_TIMEOUT_DURATION) != HAL_OK) {
+    return 1; // I2C error
   }
 
-  if(HAL_I2C_Master_Transmit(hi2c, addr << 1, 0x94, 1, I2C_TIMEOUT_DURATION) != HAL_OK) {
-    return 2; // I2C error
-  }
+  return 0;
 
 
 }

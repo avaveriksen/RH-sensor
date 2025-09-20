@@ -1,3 +1,2 @@
 ../Core/Src/PCA9548A.c:15:9:read_switch_control	2
-../Core/Src/PCA9548A.c:25:9:set_switch_control	3
-../Core/Src/PCA9548A.c:44:9:identify_switch	2
+../Core/Src/PCA9548A.c:34:9:set_switch_control	3

@@ -179,7 +179,8 @@ int main(void)
 		if (HAL_I2C_IsDeviceReady(i2c_bus.handle, (uint16_t)(0x44 << 1), 3, 5) == HAL_OK) {
 			sensors[i].address = 0x44;
 			sensors[i].ID = i + 1;
-			sensors[i].SN = read_SHT45_SN(&i2c_bus, &hcrc);
+			//sensors[i].SN = read_SHT45_SN(&i2c_bus, &hcrc);
+			read_SHT45_SN(comm, sensors[i], hcrc); // Get serial number
 			i2c_bus.n_devices++;
 			i2c_bus.devices[i] = 0x44;
 
