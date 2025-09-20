@@ -93,7 +93,7 @@
  [],
  False,
  False,
- 1756877545,
+ 1757329372,
  [('runw.exe',
    'C:\\Users\\Anders Eriksen\\Documents\\STM32CubeIDE '
    'Workspace\\N32-HYT271\\SHT45-widget\\qt-env\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\runw.exe',

@@ -35,7 +35,7 @@ typedef struct{
 } SHT45;
 
 void scan_i2c(I2Cdriver * comm, SHT45 * sensors, CRC_HandleTypeDef * hcrc);
-uint32_t read_SHT45(SHT45 * sensor, I2Cdriver * comm,CRC_HandleTypeDef * hcrc, uint8_t heat);
+uint8_t read_SHT45(SHT45 * sensor, I2Cdriver * comm,CRC_HandleTypeDef * hcrc, uint8_t heat);
 uint32_t read_SHT45_SN(I2Cdriver * comm,CRC_HandleTypeDef * hcrc);
 void sensor_power(uint8_t state);
 uint8_t reset_SHT45(I2C_HandleTypeDef * hi2c, char variant);

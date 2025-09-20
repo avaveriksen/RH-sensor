@@ -54,19 +54,19 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
-I2Cdriver i2c_bus;
-SHT45 sensors[4];	// Four Sensors, two for RH+T heated, two for just T, non heated
+I2Cdriver i2c_bus;		// Handle for the i2c bus for sensor communication
+SHT45 sensors[4];		// Holds information on each of the four sensors
 
-uint8_t uart_rx[32];
+uint8_t uart_rx[32]; 	// Storage for incoming UART serial messages
 
-uint8_t stream = 0;
-uint8_t scan = 0;
-uint8_t i2c_ch = 1;
-uint8_t i2c_ch_event = 0;
-uint8_t measure = 0;
-float version = 2; // depends on hardware. v0.2 has i2c switch.
+// Control flags
+uint8_t stream = 0;		// To stream or not
+uint8_t scan = 0;		// To scan or not
+uint8_t measure = 0;	// To measure or not
 
-volatile float data[4][2];	// Data array, four sensors, two kinds of data (RH, T)
+// Heater control variables
+uint8_t heater = 0;				// Heater enable flag
+float heater_active_pct = 97;	// Heater activation threshold [%]
 
 /* USER CODE END PV */
 
@@ -85,30 +85,38 @@ static void MX_CRC_Init(void);
 /* USER CODE BEGIN 0 */
 
 void measure_routine(){
-	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3); // Visual cue that timer is functional
 
 	  for (uint8_t i = 0; i < i2c_bus.n_devices; i++) {
-		set_switch_control(&i2c_bus, 1 << i);
+		// Read sensors one at a time
+		set_switch_control(&i2c_bus, 1 << i); 		// choose sensor channel
 
-		if(sensors[i].RH > 97) {
-			read_SHT45(&sensors[i], &i2c_bus, &hcrc, HEAT_ON);
+		if(sensors[i].RH > heater_active_pct) {		// use heater or not
+			if(heater) {
+				read_SHT45(&sensors[i], &i2c_bus, &hcrc, HEAT_ON);
+			} else {
+				read_SHT45(&sensors[i], &i2c_bus, &hcrc, HEAT_OFF);
+			}
 		} else {
 			read_SHT45(&sensors[i], &i2c_bus, &hcrc, HEAT_OFF);
 		}
-
-	    if (stream) {
-	    	for (uint8_t i = 0; i < i2c_bus.n_devices;i++) {
-	    		transmit_SHT45(&huart2, &sensors[i]);
-	    	}
-	      data_transfer_concluded_message(&huart2);
-	    }
 	  }
 
-	  measure = 0;
+	if (stream) {
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3); // Visual cue for streaming
+
+		for (uint8_t i = 0; i < i2c_bus.n_devices;i++) {
+			// Transmit sensor data one sensor at a time
+			transmit_SHT45(&huart2, &sensors[i]);
+		}
+	}
+
+	  data_transfer_concluded_message(&huart2);
+	  measure = 0; //Reset control flag
   }
 
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	// Once a second, set the measure control flag
 	measure = 1;
 }
 
@@ -152,17 +160,20 @@ int main(void)
   HAL_NVIC_DisableIRQ(TIM2_IRQn);
 
 
-  //CRC check
+  //CRC check ( I think not in use)
+  /*
   uint8_t crc_buffer[2] = {81, 23};
   uint8_t crc = HAL_CRC_Calculate(&hcrc, crc_buffer, 2);
+  */
 
-  // Sensor initialization
-  i2c_bus.handle = &hi2c1; 	// assignment must be in a function
-
-
-  // Identify sensors on i2c bus
+  i2c_bus.handle = &hi2c1; // i2c_bus setup
 
 
+  // Scan i2c bus to identify sensors
+  // I think we can leave out written out code for function call instead
+  scan_i2c(&i2c_bus, sensors, &hcrc);
+
+  /*
   for (uint8_t i = 0; i < 4; i++) {
 		set_switch_control(&i2c_bus, 1 << i);
 		if (HAL_I2C_IsDeviceReady(i2c_bus.handle, (uint16_t)(0x44 << 1), 3, 5) == HAL_OK) {
@@ -174,6 +185,7 @@ int main(void)
 
 		}
 	}
+	*/
 
   /* USER CODE END 2 */
 
@@ -183,25 +195,20 @@ int main(void)
 
 	 	  if (scan) {
 	       // scan flag is set by incoming UART message
-	 		  HAL_NVIC_DisableIRQ(TIM2_IRQn);
+	 		  HAL_NVIC_DisableIRQ(TIM2_IRQn); 		// Disable timer interrupt while scan takes place
 	 		  scan_i2c(&i2c_bus, sensors, &hcrc);
-	 		  broadcast_devices(&huart2, sensors);
-	 		  scan = 0;
+	 		  broadcast_devices(&huart2, sensors);	// Transmit result of scan
+	 		  scan = 0; 							// Reset control flag
 	 	  }
 
 	 	  if (stream) {
-	 		  HAL_NVIC_EnableIRQ(TIM2_IRQn);
+	 		  HAL_NVIC_EnableIRQ(TIM2_IRQn);		// Enable 1 second timer for data stream
 	 	  } else {
 	 		  HAL_NVIC_DisableIRQ(TIM2_IRQn);
 	 	  }
 
 	 	  if (measure) {
-	 		  measure_routine();
-	 	  }
-
-	 	  if(i2c_ch_event) {
-	 		  i2c_ch_event = 0;
-	 		  set_switch_control(&i2c_bus, i2c_ch);
+	 		  measure_routine();					// Do a measurement
 	 	  }
 
 

@@ -175,7 +175,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
             self.TdataCH1 = [row[5] for row in self.sensor.data[-50:]]
             self.TdataCH2 = [row[6] for row in self.sensor.data[-50:]]
-            self.TdataCH3 = [row[5] for row in self.sensor.data[-50:]]
+            self.TdataCH3 = [row[7] for row in self.sensor.data[-50:]]
             self.TdataCH4 = [row[8] for row in self.sensor.data[-50:]]
 
             self.xdata = [row[0] for row in self.sensor.data[-50:]]
@@ -242,9 +242,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 if (self.sensor.sensors[1] != ''):
                     self.checkbox_ch2.setText("Ch2: " + self.sensor.sensors[1])
                 if (self.sensor.sensors[2] != ''):
-                    self.checkbox_ch2.setText("Ch3: " + self.sensor.sensors[2])
+                    self.checkbox_ch3.setText("Ch3: " + self.sensor.sensors[2])
                 if (self.sensor.sensors[3] != ''):
-                    self.checkbox_ch2.setText("Ch4: " + self.sensor.sensors[3])
+                    self.checkbox_ch4.setText("Ch4: " + self.sensor.sensors[3])
 
         elif self.connect_button.text()=="Disconnect":
             self.sensor.stop_stream()

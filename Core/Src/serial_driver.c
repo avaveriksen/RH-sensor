@@ -30,12 +30,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	} else if (strcmp(uart_rx, "#s#\n") == 0) {
 		// set scan flag
 		scan = 1;
-	} else if (strcmp(uart_rx, "#1#\n") == 0) {
-		i2c_ch = 1;
-		i2c_ch_event = 1;
-	} else if (strcmp(uart_rx, "#2#\n") == 0) {
-		i2c_ch = 2;
-		i2c_ch_event = 1;
 	}
 
 	HAL_UART_Receive_IT(huart, uart_rx, 4);

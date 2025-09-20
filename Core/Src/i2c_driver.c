@@ -9,51 +9,72 @@
 #include "PCA9548A.h"
 
 void scan_i2c(I2Cdriver * comm, SHT45 * sensors, CRC_HandleTypeDef * hcrc) {
-	comm->n_devices = 0;
+	comm->n_devices = 0; // Reset comm bus data
 
 	for (uint8_t i = 0; i < 4; i++) {
-		set_switch_control(comm, 1 << i);
+		set_switch_control(comm, 1 << i);	// connect one i2c channel at a time
 		if (HAL_I2C_IsDeviceReady(comm->handle, (uint16_t)(0x44 << 1), 3, 5) == HAL_OK) {
-			sensors[i].address = 0x44;
-			sensors[i].ID = i + 1;
-			sensors[i].SN = read_SHT45_SN(comm, hcrc);
-			comm->n_devices++;
-			comm->devices[i] = 0x44;
+			// if sensor present on channel
+			sensors[i].address = 0x44; 	// redundant, all sensors have address 0x44
+			sensors[i].ID = i + 1;		// corresponds to channel number (1, 2, 3, 4)
+			sensors[i].SN = read_SHT45_SN(comm, hcrc); // Get serial number
+			comm->n_devices++;			// Update sensor count
+			comm->devices[i] = 0x44;	// Redundant
 		}
 	}
 }
 
-uint32_t read_SHT45(SHT45 * sensor, I2Cdriver * comm, CRC_HandleTypeDef * hcrc, uint8_t heat){
+uint8_t read_SHT45(SHT45 * sensor, I2Cdriver * comm, CRC_HandleTypeDef * hcrc, uint8_t heat){
 	// Read the data from SHT45
-	// return 2: 	I2C error.
-	// return 1:	Stale data.
-	// return 0:	OK, fresh data.
 
-	uint8_t addr = sensor->address;
+	/*
+	Return error codes:
+	0: No error
+	1: Transmit Measurement Request failed
+	2: Measurement Receive failed
+	3: Temperature CRC failure
+	4: RH CRC failure
+	*/
 
+	uint8_t addr = sensor->address; 	// 0x44 for all sensors
+
+	// Some commands from SHT45 datasheet
 	uint8_t cmd_reset = 0x94;
 	uint8_t cmd_measure = 0xFD;
 	uint8_t cmd_SN = 0x89;
 
 	if (heat) {
-		cmd_measure = 0x32; //200mW for 0.1 s
+		// cmd_measure = 0x32; 	//200mW for 0.1 s
+		// cmd_measure = 0x24; 	//110mW for 0.1 s
+		cmd_measure = 0x15; 	//20mW for 0.1 s
 	}
 
 	uint32_t i2c_error = 0;
 
 	// Measurement request
 	if (HAL_I2C_Master_Transmit(comm->handle, (uint16_t)(addr << 1), &cmd_measure, 1, I2C_TIMEOUT_DURATION) == HAL_OK) {
-		HAL_Delay(15);
+
+		if(heat) {
+			HAL_Delay(100); // Heating for 100ms, wait it out
+		}
+
+		HAL_Delay(15); 		// wait for sensor to do reading
+
 		if (HAL_I2C_Master_Receive(comm->handle, (uint16_t)(addr << 1), comm->i2c_buff, 6, I2C_TIMEOUT_DURATION) != HAL_OK) {
-				i2c_error = comm->handle->ErrorCode;
-			}
+				i2c_error = 2;
+		}
 
 	} else {
-		i2c_error = comm->handle->ErrorCode;
+		i2c_error = 1;
+	}
+
+	if(i2c_error) {
+		// leave function returning error message
+		return i2c_error;
 	}
 
 
-	// Convert to real values
+	// If i2c successfullm, convert received data to real values
 	uint16_t t_ticks = (comm->i2c_buff[0] << 8) + comm->i2c_buff[1];
 	uint8_t crc_T = HAL_CRC_Calculate(hcrc, comm->i2c_buff, 2);
 	if (crc_T == comm->i2c_buff[2]) {
@@ -61,6 +82,7 @@ uint32_t read_SHT45(SHT45 * sensor, I2Cdriver * comm, CRC_HandleTypeDef * hcrc, 
 		sensor->temperature = t_degC;
 	} else {
 		sensor->temperature = 0xFF;
+		i2c_error = 3;
 	}
 
 	uint16_t rh_ticks = (comm->i2c_buff[3] << 8) + comm->i2c_buff[4];
@@ -76,9 +98,10 @@ uint32_t read_SHT45(SHT45 * sensor, I2Cdriver * comm, CRC_HandleTypeDef * hcrc, 
 			sensor->RH = rh_pRH;
 	} else {
 		sensor->RH = 0xFF;
+		i2c_error = 4;
 	}
 
-	return 0;
+	return i2c_error;
 
 }
 

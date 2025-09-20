@@ -31,9 +31,9 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY
  13 .comment      00000043  00000000  00000000  00020208  2**0
                   CONTENTS, READONLY
- 14 .debug_info   0001548a  00000000  00000000  0002024b  2**0
+ 14 .debug_info   0001548e  00000000  00000000  0002024b  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_abbrev 0000303d  00000000  00000000  000356d5  2**0
+ 15 .debug_abbrev 0000303d  00000000  00000000  000356d9  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  16 .debug_aranges 000011e8  00000000  00000000  00038718  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
@@ -1492,7 +1492,7 @@ void measure_routine(){
 	  for (uint8_t i = 0; i < i2c_bus.n_devices; i++) {
  8000f3e:	2300      	movs	r3, #0
  8000f40:	71fb      	strb	r3, [r7, #7]
- 8000f42:	e046      	b.n	8000fd2 <measure_routine+0xa2>
+ 8000f42:	e02c      	b.n	8000f9e <measure_routine+0x6e>
 		set_switch_control(&i2c_bus, 1 << i);
  8000f44:	79fb      	ldrb	r3, [r7, #7]
  8000f46:	2201      	movs	r2, #1
@@ -1513,12 +1513,12 @@ void measure_routine(){
  8000f68:	eef4 7ac7 	vcmpe.f32	s15, s14
  8000f6c:	eef1 fa10 	vmrs	APSR_nzcv, fpscr
  8000f70:	dd09      	ble.n	8000f86 <measure_routine+0x56>
-			read_SHT45(&sensors[i], &i2c_bus, &hcrc, HEAT_ON);
+			read_SHT45(&sensors[i], &i2c_bus, &hcrc, HEAT_OFF);
  8000f72:	79fb      	ldrb	r3, [r7, #7]
  8000f74:	011b      	lsls	r3, r3, #4
  8000f76:	4a1f      	ldr	r2, [pc, #124]	; (8000ff4 <measure_routine+0xc4>)
  8000f78:	1898      	adds	r0, r3, r2
- 8000f7a:	2301      	movs	r3, #1
+ 8000f7a:	2300      	movs	r3, #0
  8000f7c:	4a1f      	ldr	r2, [pc, #124]	; (8000ffc <measure_routine+0xcc>)
  8000f7e:	491c      	ldr	r1, [pc, #112]	; (8000ff0 <measure_routine+0xc0>)
  8000f80:	f7ff feb2 	bl	8000ce8 <read_SHT45>
@@ -1533,50 +1533,51 @@ void measure_routine(){
  8000f90:	4a1a      	ldr	r2, [pc, #104]	; (8000ffc <measure_routine+0xcc>)
  8000f92:	4917      	ldr	r1, [pc, #92]	; (8000ff0 <measure_routine+0xc0>)
  8000f94:	f7ff fea8 	bl	8000ce8 <read_SHT45>
-		}
-
-	    if (stream) {
- 8000f98:	4b19      	ldr	r3, [pc, #100]	; (8001000 <measure_routine+0xd0>)
- 8000f9a:	781b      	ldrb	r3, [r3, #0]
- 8000f9c:	2b00      	cmp	r3, #0
- 8000f9e:	d015      	beq.n	8000fcc <measure_routine+0x9c>
-	    	for (uint8_t i = 0; i < i2c_bus.n_devices;i++) {
- 8000fa0:	2300      	movs	r3, #0
- 8000fa2:	71bb      	strb	r3, [r7, #6]
- 8000fa4:	e00a      	b.n	8000fbc <measure_routine+0x8c>
-	    		transmit_SHT45(&huart2, &sensors[i]);
- 8000fa6:	79bb      	ldrb	r3, [r7, #6]
- 8000fa8:	011b      	lsls	r3, r3, #4
- 8000faa:	4a12      	ldr	r2, [pc, #72]	; (8000ff4 <measure_routine+0xc4>)
- 8000fac:	4413      	add	r3, r2
- 8000fae:	4619      	mov	r1, r3
- 8000fb0:	4814      	ldr	r0, [pc, #80]	; (8001004 <measure_routine+0xd4>)
- 8000fb2:	f000 fb43 	bl	800163c <transmit_SHT45>
-	    	for (uint8_t i = 0; i < i2c_bus.n_devices;i++) {
- 8000fb6:	79bb      	ldrb	r3, [r7, #6]
- 8000fb8:	3301      	adds	r3, #1
- 8000fba:	71bb      	strb	r3, [r7, #6]
- 8000fbc:	4b0c      	ldr	r3, [pc, #48]	; (8000ff0 <measure_routine+0xc0>)
- 8000fbe:	7b1b      	ldrb	r3, [r3, #12]
- 8000fc0:	79ba      	ldrb	r2, [r7, #6]
- 8000fc2:	429a      	cmp	r2, r3
- 8000fc4:	d3ef      	bcc.n	8000fa6 <measure_routine+0x76>
-	    	}
-	      data_transfer_concluded_message(&huart2);
- 8000fc6:	480f      	ldr	r0, [pc, #60]	; (8001004 <measure_routine+0xd4>)
- 8000fc8:	f000 fbae 	bl	8001728 <data_transfer_concluded_message>
 	  for (uint8_t i = 0; i < i2c_bus.n_devices; i++) {
- 8000fcc:	79fb      	ldrb	r3, [r7, #7]
- 8000fce:	3301      	adds	r3, #1
- 8000fd0:	71fb      	strb	r3, [r7, #7]
- 8000fd2:	4b07      	ldr	r3, [pc, #28]	; (8000ff0 <measure_routine+0xc0>)
- 8000fd4:	7b1b      	ldrb	r3, [r3, #12]
- 8000fd6:	79fa      	ldrb	r2, [r7, #7]
- 8000fd8:	429a      	cmp	r2, r3
- 8000fda:	d3b3      	bcc.n	8000f44 <measure_routine+0x14>
-	    }
+ 8000f98:	79fb      	ldrb	r3, [r7, #7]
+ 8000f9a:	3301      	adds	r3, #1
+ 8000f9c:	71fb      	strb	r3, [r7, #7]
+ 8000f9e:	4b14      	ldr	r3, [pc, #80]	; (8000ff0 <measure_routine+0xc0>)
+ 8000fa0:	7b1b      	ldrb	r3, [r3, #12]
+ 8000fa2:	79fa      	ldrb	r2, [r7, #7]
+ 8000fa4:	429a      	cmp	r2, r3
+ 8000fa6:	d3cd      	bcc.n	8000f44 <measure_routine+0x14>
+		}
 	  }
 
+	if (stream) {
+ 8000fa8:	4b15      	ldr	r3, [pc, #84]	; (8001000 <measure_routine+0xd0>)
+ 8000faa:	781b      	ldrb	r3, [r3, #0]
+ 8000fac:	2b00      	cmp	r3, #0
+ 8000fae:	d012      	beq.n	8000fd6 <measure_routine+0xa6>
+		for (uint8_t i = 0; i < i2c_bus.n_devices;i++) {
+ 8000fb0:	2300      	movs	r3, #0
+ 8000fb2:	71bb      	strb	r3, [r7, #6]
+ 8000fb4:	e00a      	b.n	8000fcc <measure_routine+0x9c>
+			transmit_SHT45(&huart2, &sensors[i]);
+ 8000fb6:	79bb      	ldrb	r3, [r7, #6]
+ 8000fb8:	011b      	lsls	r3, r3, #4
+ 8000fba:	4a0e      	ldr	r2, [pc, #56]	; (8000ff4 <measure_routine+0xc4>)
+ 8000fbc:	4413      	add	r3, r2
+ 8000fbe:	4619      	mov	r1, r3
+ 8000fc0:	4810      	ldr	r0, [pc, #64]	; (8001004 <measure_routine+0xd4>)
+ 8000fc2:	f000 fb3b 	bl	800163c <transmit_SHT45>
+		for (uint8_t i = 0; i < i2c_bus.n_devices;i++) {
+ 8000fc6:	79bb      	ldrb	r3, [r7, #6]
+ 8000fc8:	3301      	adds	r3, #1
+ 8000fca:	71bb      	strb	r3, [r7, #6]
+ 8000fcc:	4b08      	ldr	r3, [pc, #32]	; (8000ff0 <measure_routine+0xc0>)
+ 8000fce:	7b1b      	ldrb	r3, [r3, #12]
+ 8000fd0:	79ba      	ldrb	r2, [r7, #6]
+ 8000fd2:	429a      	cmp	r2, r3
+ 8000fd4:	d3ef      	bcc.n	8000fb6 <measure_routine+0x86>
+		}
+
+	}
+
+	  data_transfer_concluded_message(&huart2);
+ 8000fd6:	480b      	ldr	r0, [pc, #44]	; (8001004 <measure_routine+0xd4>)
+ 8000fd8:	f000 fba6 	bl	8001728 <data_transfer_concluded_message>
 	  measure = 0;
  8000fdc:	4b0a      	ldr	r3, [pc, #40]	; (8001008 <measure_routine+0xd8>)
  8000fde:	2200      	movs	r2, #0
