@@ -17,6 +17,7 @@
 extern uint8_t stream;
 extern uint8_t uart_rx[];
 extern uint8_t scan;
+extern uint8_t heater;
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 uint8_t transmit_SHT45(UART_HandleTypeDef * huart, SHT45 * sensor);

@@ -1,4 +1,4 @@
-../Core/Src/serial_driver.c:10:6:HAL_UART_RxCpltCallback	40	static
-../Core/Src/serial_driver.c:40:9:transmit_SHT45	64	static
-../Core/Src/serial_driver.c:68:9:data_transfer_concluded_message	24	static
-../Core/Src/serial_driver.c:81:9:broadcast_devices	96	static
+../Core/Src/serial_driver.c:10:6:HAL_UART_RxCpltCallback	56	static
+../Core/Src/serial_driver.c:48:9:transmit_SHT45	64	static
+../Core/Src/serial_driver.c:76:9:data_transfer_concluded_message	24	static
+../Core/Src/serial_driver.c:89:9:broadcast_devices	96	static

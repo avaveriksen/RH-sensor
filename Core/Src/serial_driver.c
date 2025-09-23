@@ -15,6 +15,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	uint8_t ack[] = "#!!#0#\n";
 	uint8_t ack_stream[] = "#A!#\n";
 	uint8_t ack_stream_stop[] = "#S!#\n";
+	uint8_t ack_heater_on[] = "#H!#\n";
+	uint8_t ack_heater_off[] = "#h!#\n";
 
 	// Incoming message decoder
 	if (strcmp(uart_rx, "#?#\n") == 0) {
@@ -31,6 +33,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	} else if (strcmp(uart_rx, "#s#\n") == 0) {
 		// Command to set scan flag
 		scan = 1;
+	} else if (strcmp(uart_rx, "#H#\n") == 0) {
+		heater = 1;
+		HAL_UART_Transmit(huart, ack_heater_on, strlen(ack_heater_on), HAL_MAX_DELAY);
+	} else if (strcmp(uart_rx, "#h#\n") == 0) {
+		heater = 0;
+		HAL_UART_Transmit(huart, ack_heater_off, strlen(ack_heater_on), HAL_MAX_DELAY);
 	}
 
 	//Receive interrupt must be reenabled after RxCallback

@@ -35,10 +35,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.controls_widget.setMinimumWidth(150)
         self.controls_widget.setLayout(self.layout_controls)
 
+        # BOXES
         self.connection_box =QtWidgets.QGroupBox("Connection")
         self.display_box = QtWidgets.QGroupBox("Display Channel: Sensor SN")
         self.log_box = QtWidgets.QGroupBox("Data Logging")
+        self.heater_box = QtWidgets.QGroupBox("Heater Control")
 
+        # connection box content
         self.layout_connection = QtWidgets.QVBoxLayout()
         self.com_port_box = QtWidgets.QComboBox()
         self.refresh_com = QtWidgets.QPushButton("Refresh Ports")
@@ -50,6 +53,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.layout_connection.addWidget(self.start_button)
         self.connection_box.setLayout(self.layout_connection)
 
+        # display box content
         self.layout_display = QtWidgets.QVBoxLayout()
         self.checkbox_ch1 = QtWidgets.QCheckBox("Ch1")
         self.checkbox_ch1.setStyleSheet("""
@@ -105,11 +109,19 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.layout_display.addWidget(self.checkbox_ch4)
         self.display_box.setLayout(self.layout_display)
 
+        # log box content
         self.layout_log = QtWidgets.QVBoxLayout()
         self.checkbox_log = QtWidgets.QCheckBox("Log Data")
         self.layout_log.addWidget(self.checkbox_log)
         self.log_box.setLayout(self.layout_log)
         self.checkbox_log.setChecked(True)
+
+        # heater control box content
+        self.layout_heater = QtWidgets.QVBoxLayout()
+        self.checkbox_heater = QtWidgets.QCheckBox("Heater")
+        self.layout_heater.addWidget(self.checkbox_heater)
+        self.heater_box.setLayout(self.layout_heater)
+        self.checkbox_heater.setChecked(False)
 
         self.spacer = QtWidgets.QWidget()
 
@@ -119,11 +131,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.start_button.clicked.connect(self.start_button_event)
         self.com_port_box.currentTextChanged.connect(self.port_changed)
         self.checkbox_log.stateChanged.connect(self.log_state_changed)
+        self.checkbox_heater.stateChanged.connect(self.heater_state_changed)
 
         # Add boxes to nested widget
         self.layout_controls.addWidget(self.connection_box)
         self.layout_controls.addWidget(self.display_box)
         self.layout_controls.addWidget(self.log_box)
+        self.layout_controls.addWidget(self.heater_box)
         self.layout_controls.addWidget(self.spacer)
 
         self.layout_master.addWidget(self.controls_widget)
@@ -271,6 +285,23 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.sensor.logging = False
 
         print("Log state: True") if self.sensor.logging else print("Log state: False")
+
+    def heater_state_changed(self):
+        if self.checkbox_heater.isChecked():
+            self.sensor.activate_heater()
+            if self.sensor.heater:
+                self.checkbox_heater.setChecked(True)
+            else:
+                self.checkbox_heater.setChecked(False)
+
+        else:
+            self.sensor.deactivate_heater()
+            if self.sensor.heater:
+                self.checkbox_heater.setChecked(True)
+            else:
+                self.checkbox_heater.setChecked(False)
+
+        print("Heater state: True") if self.sensor.heater else print("Heater state: False")
 
 if __name__ == "__main__":
 

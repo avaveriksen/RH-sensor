@@ -18,6 +18,7 @@ class SHT45:
         self.time_zero = 0
         self.time_now = 0
         self.logging = True
+        self.heater = False
 
         # Task management
         self.threading = False
@@ -139,6 +140,10 @@ class SHT45:
                 print("Decode error:", e)
         elif msg_fields[1] == 'D!':
             self.add_samples()
+        elif msg_fields[1] == 'H!':
+            self.heater = True
+        elif msg_fields[1] == 'h!':
+            self.heater = False
         elif len(msg_fields) < 4 or msg_fields[1] != 'D!':
             return
 
@@ -158,3 +163,13 @@ class SHT45:
         ports = comports()
         com_list = [com[0] for com in ports]
         self.com_ports = [port for port in com_list if ('/dev/ttyA' in port or 'COM' in port)]
+
+    def activate_heater(self):
+        self.ser_conn.write(b'#H#\n')
+        self.msg = self.ser_conn.readline().decode('utf-8')
+        self.decode_message()
+
+    def deactivate_heater(self):
+        self.ser_conn.write(b'#h#\n')
+        self.msg = self.ser_conn.readline().decode('utf-8')
+        self.decode_message()

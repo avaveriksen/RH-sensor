@@ -45,7 +45,7 @@ uint8_t read_SHT45(SHT45 * sensor, I2Cdriver * comm, CRC_HandleTypeDef * hcrc, u
 
 	if (heat) {
 		// cmd_measure = 0x32; 	//200mW for 0.1 s
-		// cmd_measure = 0x24; 	//110mW for 0.1 s
+		//cmd_measure = 0x24; 	//110mW for 0.1 s
 		cmd_measure = 0x15; 	//20mW for 0.1 s
 	}
 
@@ -55,7 +55,7 @@ uint8_t read_SHT45(SHT45 * sensor, I2Cdriver * comm, CRC_HandleTypeDef * hcrc, u
 	if (HAL_I2C_Master_Transmit(comm->handle, (uint16_t)(addr << 1), &cmd_measure, 1, I2C_TIMEOUT_DURATION) == HAL_OK) {
 
 		if(heat) {
-			HAL_Delay(100); // Heating for 100ms, wait it out
+			HAL_Delay(200); // Heating for 150ms, wait it out
 		}
 
 		HAL_Delay(15); 		// wait for sensor to do reading

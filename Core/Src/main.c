@@ -66,7 +66,7 @@ uint8_t measure = 0;	// To measure or not
 
 // Heater control variables
 uint8_t heater = 0;				// Heater enable flag
-float heater_active_pct = 97;	// Heater activation threshold [%]
+float heater_active_pct = 99;	// Heater activation threshold [%]
 
 /* USER CODE END PV */
 
@@ -86,23 +86,27 @@ static void MX_CRC_Init(void);
 
 void measure_routine(){
 
-	  for (uint8_t i = 0; i < i2c_bus.n_devices; i++) {
+	HAL_NVIC_DisableIRQ(TIM2_IRQn);
+
+	for (uint8_t i = 0; i < i2c_bus.n_devices; i++) {
 		// Read sensors one at a time
 		set_switch_control(&i2c_bus, 1 << i); 		// choose sensor channel
 
 		if(sensors[i].RH > heater_active_pct) {		// use heater or not
 			if(heater) {
 				read_SHT45(&sensors[i], &i2c_bus, &hcrc, HEAT_ON);
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, GPIO_PIN_SET);
 			} else {
 				read_SHT45(&sensors[i], &i2c_bus, &hcrc, HEAT_OFF);
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, GPIO_PIN_RESET);
 			}
 		} else {
 			read_SHT45(&sensors[i], &i2c_bus, &hcrc, HEAT_OFF);
 		}
-	  }
+	}
 
 	if (stream) {
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3); // Visual cue for streaming
+		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3); // Visual cue for streaming
 
 		for (uint8_t i = 0; i < i2c_bus.n_devices;i++) {
 			// Transmit sensor data one sensor at a time
